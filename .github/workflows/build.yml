@@ -1,0 +1,47 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+permissions:
+  contents: write
+  packages: write
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # fetch-depth is required
+
+      - uses: wagoid/commitlint-github-action@v5
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: go install ./...
+
+      - name: go-vet
+        run: go vet -v ./...
+
+      - uses: pre-commit/action@v3.0.0
