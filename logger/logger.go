@@ -17,7 +17,6 @@
 package logger
 
 import (
-	"slices"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -37,7 +36,10 @@ func GetAllLevels() string {
 		l = append(l, s.String())
 	}
 
-	slices.Reverse(l)
+	for i, j := 0, len(l)-1; i < j; i, j = i+1, j-1 {
+		l[i], l[j] = l[j], l[i]
+	}
+
 	return strings.Join(l, ", ")
 }
 
