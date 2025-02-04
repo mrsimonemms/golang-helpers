@@ -68,7 +68,7 @@ import "github.com/mrsimonemms/golang-helpers/logger"
 
 var logLevel string
 
-var root = &cobra.Command{
+var rootCmd = &cobra.Command{
   PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
     return logger.SetLevel(logLevel)
   },
