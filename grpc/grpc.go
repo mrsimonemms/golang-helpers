@@ -49,10 +49,12 @@ type Listener[T any] struct {
 	Run   func(*cobra.Command, []string) (*T, error)
 }
 
+// StreamResponse has the same interface as the gRPC streaming server which is useful for local development
 type StreamResponse[T any] struct {
 	grpc.ServerStream
 }
 
+// Send is the only method on the StreamResponse. Any data received is sent directly to the terminal logger.
 func (f *StreamResponse[T]) Send(data *T) error {
 	logger.Log().WithField("data", data).Info("New stream data received")
 	return nil

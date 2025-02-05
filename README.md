@@ -53,6 +53,10 @@ and use sensible defaults where necessary.
 The response from the implementation is printed to your terminal, including any
 sensitive information, so this should be used for local development only.
 
+This handles both single responses and streamed responses. A `StreamResponse`
+struct exists to mock the gRPC streaming dependency which sends any data sent to
+it to the terminal.
+
 ### Example
 
 [Example application](./examples/grpc/basic/)

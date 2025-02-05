@@ -72,23 +72,29 @@ func main() {
 		},
 	})
 
-	// Add in another command
+	// Add in a streaming command
 	grpcHelper.NewGRPCCommand(g, "command2", grpcHelper.Listener[basic.Command2Response]{
 		Flags: func(c *cobra.Command) {
+			// Add in the flags as before
 			c.Flags().String("input1", "default input1", "Some input1")
 			c.Flags().String("input2", "default input2", "Some input2")
 		},
 		Run: func(c *cobra.Command, s []string) (*basic.Command2Response, error) {
+			// Get the flags as before
 			input1, err := c.Flags().GetString("input1")
 			cobra.CheckErr(err)
 
 			input2, err := c.Flags().GetString("input2")
 			cobra.CheckErr(err)
 
-			return basicCmd.Command2(context.Background(), &basic.Command2Request{
+			// As this emits multiple messages, the command receives the request
+			// and a server. When mocking the command for development purposes,
+			// you can use the StreamResponse helper which spoofs the gRPC stream
+			// server and sends the output to the logger.
+			return nil, basicCmd.Command2(&basic.Command2Request{
 				Input1: input1,
 				Input2: input2,
-			})
+			}, &grpcHelper.StreamResponse[basic.Command2Response]{})
 		},
 	})
 

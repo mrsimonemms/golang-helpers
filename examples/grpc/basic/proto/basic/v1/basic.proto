@@ -23,7 +23,7 @@ service BasicService {
   // Defines command1
   rpc Command1(Command1Request) returns (Command1Response) {}
   // Defines command2 - a streamed command
-  rpc Command2(Command2Request) returns (Command2Response) {}
+  rpc Command2(Command2Request) returns (stream Command2Response) {}
 }
 
 // Request to run command1
@@ -49,8 +49,8 @@ message Command2Request {
 
 // Response to a command1 request
 message Command2Response {
-  // the output
-  string output1 = 1;
-  // the output2
-  string output2 = 2;
+  // the message
+  string message = 1;
+  // the data
+  string data = 2;
 }
