@@ -49,6 +49,15 @@ type Listener[T any] struct {
 	Run   func(*cobra.Command, []string) (*T, error)
 }
 
+type StreamResponse[T any] struct {
+	grpc.ServerStream
+}
+
+func (f *StreamResponse[T]) Send(data *T) error {
+	logger.Log().WithField("data", data).Info("New stream data received")
+	return nil
+}
+
 func NewGRPCCommand[T any](s *Server, command string, f Listener[T]) *Server {
 	cmd := &cobra.Command{
 		Use:   command,

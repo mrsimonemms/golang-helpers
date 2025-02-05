@@ -4,4 +4,4 @@
 
 | File | Line Number | Author | Message |
 | --- | --- | --- | --- |
-| [grpc/grpc.go](grpc/grpc.go#L123) | 123 | Simon Emms <simon@simonemms.com> | allow customised health checks |
+| [grpc/grpc.go](grpc/grpc.go#L132) | 132 | Simon Emms <simon@simonemms.com> | allow customised health checks |
