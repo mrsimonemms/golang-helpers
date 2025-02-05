@@ -19,3 +19,10 @@ else
 	@cruft check || cruft update --skip-apply-ask --refresh-private-variables
 endif
 .PHONY: cruft-update
+
+generate-grpc:
+	@for dir in $(shell ls -d ./examples/grpc/*); do \
+		rm -Rf $${dir}/v1; \
+		buf generate --template $${dir}/proto/buf.gen.yaml $${dir}/proto --output $${dir}/..; \
+	done
+.PHONY: generate-grpc
