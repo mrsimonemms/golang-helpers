@@ -17,32 +17,50 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/mrsimonemms/golang-helpers/examples/grpc/basic/v1"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
-func (c *Commands) Command2(ctx context.Context, request *basic.Command2Request) (*basic.Command2Response, error) {
+// grpc.ServerStreamingServer[Command2Response]) error
+func (c *Commands) Command2(request *basic.Command2Request, srv grpc.ServerStreamingServer[basic.Command2Response]) error {
+	if err := srv.Send(&basic.Command2Response{
+		Message: "Request received - sending no data",
+	}); err != nil {
+		return fmt.Errorf("errored sending to grpc server: %w", err)
+	}
+
 	res1, err := c.client.Run(request.Input1)
 	if err != nil {
-		return nil, fmt.Errorf("error running db: %w", err)
+		return fmt.Errorf("error running db: %w", err)
+	}
+
+	if err := srv.Send(&basic.Command2Response{
+		Message: "Returning the input1",
+		Data:    res1,
+	}); err != nil {
+		return fmt.Errorf("errored sending to grpc server: %w", err)
 	}
 
 	sleep := time.Second * 10
-	logrus.WithField("timeout", sleep).WithContext(ctx).Info("Sleeping for effect")
+	logrus.WithField("timeout", sleep).Info("Sleeping for effect")
 
 	time.Sleep(sleep)
 
 	res2, err := c.client.Run(request.Input2)
 	if err != nil {
-		return nil, fmt.Errorf("error running db: %w", err)
+		return fmt.Errorf("error running db: %w", err)
 	}
 
-	return &basic.Command2Response{
-		Output1: res1,
-		Output2: res2,
-	}, nil
+	if err := srv.Send(&basic.Command2Response{
+		Message: "Returning the input2",
+		Data:    res2,
+	}); err != nil {
+		return fmt.Errorf("errored sending to grpc server: %w", err)
+	}
+
+	return nil
 }

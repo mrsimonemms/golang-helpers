@@ -47,7 +47,7 @@ type BasicServiceClient interface {
 	// Defines command1
 	Command1(ctx context.Context, in *Command1Request, opts ...grpc.CallOption) (*Command1Response, error)
 	// Defines command2 - a streamed command
-	Command2(ctx context.Context, in *Command2Request, opts ...grpc.CallOption) (*Command2Response, error)
+	Command2(ctx context.Context, in *Command2Request, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Command2Response], error)
 }
 
 type basicServiceClient struct {
@@ -68,15 +68,24 @@ func (c *basicServiceClient) Command1(ctx context.Context, in *Command1Request, 
 	return out, nil
 }
 
-func (c *basicServiceClient) Command2(ctx context.Context, in *Command2Request, opts ...grpc.CallOption) (*Command2Response, error) {
+func (c *basicServiceClient) Command2(ctx context.Context, in *Command2Request, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Command2Response], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Command2Response)
-	err := c.cc.Invoke(ctx, BasicService_Command2_FullMethodName, in, out, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &BasicService_ServiceDesc.Streams[0], BasicService_Command2_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &grpc.GenericClientStream[Command2Request, Command2Response]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
 }
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type BasicService_Command2Client = grpc.ServerStreamingClient[Command2Response]
 
 // BasicServiceServer is the server API for BasicService service.
 // All implementations must embed UnimplementedBasicServiceServer
@@ -87,7 +96,7 @@ type BasicServiceServer interface {
 	// Defines command1
 	Command1(context.Context, *Command1Request) (*Command1Response, error)
 	// Defines command2 - a streamed command
-	Command2(context.Context, *Command2Request) (*Command2Response, error)
+	Command2(*Command2Request, grpc.ServerStreamingServer[Command2Response]) error
 	mustEmbedUnimplementedBasicServiceServer()
 }
 
@@ -102,8 +111,8 @@ func (UnimplementedBasicServiceServer) Command1(context.Context, *Command1Reques
 	return nil, status.Errorf(codes.Unimplemented, "method Command1 not implemented")
 }
 
-func (UnimplementedBasicServiceServer) Command2(context.Context, *Command2Request) (*Command2Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Command2 not implemented")
+func (UnimplementedBasicServiceServer) Command2(*Command2Request, grpc.ServerStreamingServer[Command2Response]) error {
+	return status.Errorf(codes.Unimplemented, "method Command2 not implemented")
 }
 func (UnimplementedBasicServiceServer) mustEmbedUnimplementedBasicServiceServer() {}
 func (UnimplementedBasicServiceServer) testEmbeddedByValue()                      {}
@@ -144,23 +153,16 @@ func _BasicService_Command1_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BasicService_Command2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Command2Request)
-	if err := dec(in); err != nil {
-		return nil, err
+func _BasicService_Command2_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Command2Request)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(BasicServiceServer).Command2(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BasicService_Command2_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BasicServiceServer).Command2(ctx, req.(*Command2Request))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(BasicServiceServer).Command2(m, &grpc.GenericServerStream[Command2Request, Command2Response]{ServerStream: stream})
 }
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type BasicService_Command2Server = grpc.ServerStreamingServer[Command2Response]
 
 // BasicService_ServiceDesc is the grpc.ServiceDesc for BasicService service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -173,11 +175,13 @@ var BasicService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Command1",
 			Handler:    _BasicService_Command1_Handler,
 		},
+	},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "Command2",
-			Handler:    _BasicService_Command2_Handler,
+			StreamName:    "Command2",
+			Handler:       _BasicService_Command2_Handler,
+			ServerStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "basic/v1/basic.proto",
 }
