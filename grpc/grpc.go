@@ -63,7 +63,7 @@ func (f *StreamResponse[T]) Send(data *T) error {
 func NewGRPCCommand[T any](s *Server, command string, f Listener[T]) *Server {
 	cmd := &cobra.Command{
 		Use:   command,
-		Short: fmt.Sprintf(`Run the "%s" gRPC command`, command),
+		Short: fmt.Sprintf(`Run the "%q" gRPC command`, command),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			res, err := f.Run(cmd, args)
 			if err != nil {
@@ -99,6 +99,7 @@ func New(name, description string, serverFactory []ServerFactory, opts ...Option
 		RootCmd: rootCmd,
 		RunCmd: &cobra.Command{
 			Use: "run",
+			//nolint:lll // Allow long message for exact CLI output
 			Short: `Debug a gRPC command by running it as single, standalone calls. Configure all your input parameters as Cobra flags and watch it fly.
 
 Any response from the command will be sent to the console. In production, this will be returned via gRPC.`,
@@ -143,7 +144,13 @@ func newRootCmd(name, description string, serverFactory []ServerFactory, opts ..
 		},
 	}
 
-	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", logrus.InfoLevel.String(), fmt.Sprintf("log level: %s", logger.GetAllLevels()))
+	rootCmd.PersistentFlags().StringVarP(
+		&logLevel,
+		"log-level",
+		"l",
+		logrus.InfoLevel.String(),
+		fmt.Sprintf("log level: %s", logger.GetAllLevels()),
+	)
 
 	rootCmd.Flags().IntVarP(&port, "port", "p", 3000, "The server port")
 
