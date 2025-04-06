@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
-package main
+package golanghelpers
 
-func main() {}
+func Ptr[T any](p T) *T {
+	return &p
+}

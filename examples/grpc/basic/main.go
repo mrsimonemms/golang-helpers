@@ -18,12 +18,16 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"math/big"
 
 	"github.com/mrsimonemms/golang-helpers/examples/grpc/basic/cmd"
 	basic "github.com/mrsimonemms/golang-helpers/examples/grpc/basic/v1"
 	grpcHelper "github.com/mrsimonemms/golang-helpers/grpc"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 const (
@@ -46,11 +50,33 @@ func main() {
 	// The ServerFactory wires up the gRPC server to the desired gRPC client. Any
 	// additional configuration for the server goes in here. By default, it adds
 	// the gRPC reflection and health checks.
-	g := grpcHelper.New(name, description, []grpcHelper.ServerFactory{
-		func(server *grpc.Server) {
-			basic.RegisterBasicServiceServer(server, basicCmd)
+	g := grpcHelper.New(
+		name,
+		description,
+		[]grpcHelper.ServerFactory{
+			func(server *grpc.Server) {
+				basic.RegisterBasicServiceServer(server, basicCmd)
+			},
 		},
-	})
+		// Add optional customisation to the server
+		grpcHelper.Options{
+			HealthChecks: map[string]grpcHelper.HealthCheck{
+				"": {
+					Check: func(s *health.Server) grpc_health_v1.HealthCheckResponse_ServingStatus {
+						// Wire into your health check
+						//
+						// This is a random number generator which returns an error
+						// if the generated number is 1
+						n, _ := rand.Int(rand.Reader, big.NewInt(9))
+						if n.Int64() == 1 {
+							return grpc_health_v1.HealthCheckResponse_NOT_SERVING
+						}
+
+						return grpc_health_v1.HealthCheckResponse_SERVING
+					},
+				},
+			},
+		})
 
 	// Define a gRPC command
 	//
