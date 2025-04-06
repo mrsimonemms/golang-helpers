@@ -20,7 +20,9 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 
+	golanghelpers "github.com/mrsimonemms/golang-helpers"
 	"github.com/mrsimonemms/golang-helpers/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -31,11 +33,16 @@ import (
 )
 
 type Options struct {
-	HealthChecks  []HealthCheck
+	HealthChecks  map[string]HealthCheck
 	ServerOptions []grpc.ServerOption
 }
 
-type HealthCheck func(*health.Server)
+type HealthCheck struct {
+	Timeout *time.Duration
+	Check   HealthCheckFn
+}
+
+type HealthCheckFn func(*health.Server) grpc_health_v1.HealthCheckResponse_ServingStatus
 
 type ServerFactory func(server *grpc.Server)
 
@@ -124,16 +131,51 @@ func newRootCmd(name, description string, serverFactory []ServerFactory, opts ..
 			}
 
 			serverOpts := make([]grpc.ServerOption, 0)
+			healthchecks := map[string]HealthCheck{}
 			for _, o := range opts {
 				serverOpts = append(serverOpts, o.ServerOptions...)
+				for k, v := range o.HealthChecks {
+					if _, ok := healthchecks[k]; ok {
+						return fmt.Errorf("health check already registered: %s", k)
+					}
+					healthchecks[k] = v
+				}
 			}
 
 			server := grpc.NewServer(serverOpts...)
 			// Register reflection service on gRPC server.
 			reflection.Register(server)
 
-			// @todo(sje): allow customised health checks
-			grpc_health_v1.RegisterHealthServer(server, health.NewServer())
+			healthcheck := health.NewServer()
+			grpc_health_v1.RegisterHealthServer(server, healthcheck)
+
+			for service, check := range healthchecks {
+				go func() {
+					if check.Timeout == nil {
+						check.Timeout = golanghelpers.Ptr(time.Second * 10)
+					}
+
+					for {
+						// Run health check
+						status := check.Check(healthcheck)
+
+						l := logger.Log().
+							WithField("status", status).
+							WithField("service", service).
+							WithField("timeoout", check.Timeout)
+
+						if status == grpc_health_v1.HealthCheckResponse_SERVING {
+							l.Debug("Running health check")
+						} else {
+							l.Error("Health check failed")
+						}
+
+						healthcheck.SetServingStatus(service, status)
+
+						time.Sleep(*check.Timeout)
+					}
+				}()
+			}
 
 			for _, factory := range serverFactory {
 				factory(server)
