@@ -1,5 +1,8 @@
 # golang-helpers
 
+<!-- markdownlint-disable-next-line MD013 MD034 -->
+[![Go Report Card](https://goreportcard.com/badge/github.com/mrsimonemms/golang-helpers)](https://goreportcard.com/report/github.com/mrsimonemms/golang-helpers)
+
 Common Golang helpers
 
 <!-- toc -->
