@@ -20,7 +20,9 @@ import (
 	"context"
 	"crypto/rand"
 	"math/big"
+	"time"
 
+	golanghelpers "github.com/mrsimonemms/golang-helpers"
 	"github.com/mrsimonemms/golang-helpers/examples/grpc/basic/cmd"
 	basic "github.com/mrsimonemms/golang-helpers/examples/grpc/basic/v1"
 	grpcHelper "github.com/mrsimonemms/golang-helpers/grpc"
@@ -61,6 +63,7 @@ func main() {
 		// Add optional customisation to the server
 		grpcHelper.Options{
 			HealthChecks: map[string]grpcHelper.HealthCheck{
+				// gRPC health checks receive a service name property, defaulting to ""
 				"": {
 					Check: func(s *health.Server) grpc_health_v1.HealthCheckResponse_ServingStatus {
 						// Wire into your health check
@@ -74,6 +77,8 @@ func main() {
 
 						return grpc_health_v1.HealthCheckResponse_SERVING
 					},
+					// Timeout defaults to 10 seconds
+					Timeout: golanghelpers.Ptr(time.Second * 5),
 				},
 			},
 		})
