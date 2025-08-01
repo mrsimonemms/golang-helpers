@@ -12,6 +12,8 @@ Common Golang helpers
   * [Run](#run)
   * [Example](#example)
 * [Logger](#logger)
+* [Temporal](#temporal)
+  * [Zerolog](#zerolog)
 * [Contributing](#contributing)
   * [Open in a container](#open-in-a-container)
   * [Commit style](#commit-style)
@@ -84,6 +86,35 @@ var rootCmd = &cobra.Command{
 
 func init() {
   rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", logrus.InfoLevel.String(), fmt.Sprintf("log level: %s", logger.GetAllLevels()))
+}
+```
+
+## Temporal
+
+### Zerolog
+
+Useful for using an instance of [Zerolog](https://github.com/rs/zerolog) as your
+[Temporal](https://temporal.io) logger
+
+```go
+package main
+
+import (
+  "github.com/mrsimonemms/golang-helpers/temporal"
+  "go.temporal.io/sdk/client"
+  "github.com/rs/zerolog/log"
+)
+
+func main() {
+  c, err := client.Dial(client.Options{
+    Logger: temporal.NewZerologHandler(&log.Logger),
+  })
+  if err != nil {
+    log.Fatal().Err(err).Msg("Unable to create client")
+  }
+  defer c.Close()
+
+  // Continue with the rest of your application
 }
 ```
 
