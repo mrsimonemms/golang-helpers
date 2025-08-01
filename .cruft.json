@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/mrsimonemms/new",
-  "commit": "529943dad727409a701c0b0f769f02b1cc33ce95",
+  "commit": "31026d30d7422cb70b7dc482b946e292a6e12434",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -10,7 +10,7 @@
       "repo": "github.com/mrsimonemms/golang-helpers",
       "use_viper": false,
       "_template": "https://github.com/mrsimonemms/new",
-      "_commit": "529943dad727409a701c0b0f769f02b1cc33ce95"
+      "_commit": "31026d30d7422cb70b7dc482b946e292a6e12434"
     }
   },
   "directory": "golang-cobra",

@@ -2,14 +2,14 @@
   "name": "devcontainer",
   "image": "ghcr.io/mrsimonemms/devcontainers/full",
   "features": {
-    "ghcr.io/mrsimonemms/devcontainers/cobra-cli:0": {},
+    "ghcr.io/mrsimonemms/devcontainers/cobra-cli:1": {},
     "ghcr.io/guiyomh/features/goreleaser:0": {},
     "ghcr.io/azutake/devcontainer-features/go-packages-install:0": {
       "PACKAGES": "google.golang.org/protobuf/cmd/protoc-gen-go@latest,google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest"
     },
-    "ghcr.io/devcontainers-contrib/features/protoc:1": {},
-    "ghcr.io/marcozac/devcontainer-features/buf:1": {},
-    "ghcr.io/devcontainers-contrib/features/grpcurl-asdf:2": {}
+    "ghcr.io/devcontainers-extra/features/protoc:1": {},
+    "ghcr.io/mrsimonemms/devcontainers/buf:1": {},
+    "ghcr.io/devcontainers-extra/features/grpcurl-asdf:2": {}
   },
   "customizations": {
     "vscode": {
@@ -18,9 +18,6 @@
       ],
       "settings": {}
     }
-  },
-  "postCreateCommand": {
-    "bootstrap": "ln -s $PWD/.cobra.yaml $HOME/.cobra.yaml && if [ ! -f \"go.mod\" ]; then go mod init \"github.com/mrsimonemms/golang-helpers\"; fi && if [ ! -f \"main.go\" ]; then cobra-cli init && go mod tidy; fi"
   },
   "containerEnv": {
     "GIT_REPO": "github.com/mrsimonemms/golang-helpers"
