@@ -125,6 +125,7 @@ func newRootCmd(name, description string, serverFactory []ServerFactory, opts ..
 			return logger.SetLevel(logLevel)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			//nolint:noctx
 			lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 			if err != nil {
 				return fmt.Errorf("failed to start listener: %w", err)
