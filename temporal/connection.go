@@ -69,6 +69,9 @@ func WithDataConverter(cvt converter.DataConverter) Options {
 
 func WithHostPort(hostPort string) Options {
 	return func(o *client.Options) error {
+		if hostPort == "" {
+			hostPort = client.DefaultHostPort
+		}
 		o.HostPort = hostPort
 		return nil
 	}
@@ -90,6 +93,9 @@ func WithMetrics(metrics client.MetricsHandler) Options {
 
 func WithNamespace(namespace string) Options {
 	return func(o *client.Options) error {
+		if namespace == "" {
+			namespace = client.DefaultNamespace
+		}
 		o.Namespace = namespace
 		return nil
 	}
@@ -108,8 +114,9 @@ func WithPrometheusMetrics(listenAddress, prefix string) Options {
 func WithTLS(enabled bool) Options {
 	return func(o *client.Options) error {
 		if enabled {
-			connectionOpts := &client.ConnectionOptions{}
-			connectionOpts.TLS = new(tls.Config)
+			connectionOpts := &client.ConnectionOptions{
+				TLS: new(tls.Config),
+			}
 			return WithConnectionOptions(connectionOpts)(o)
 		}
 		return nil
