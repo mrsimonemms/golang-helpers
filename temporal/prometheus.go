@@ -55,6 +55,6 @@ func NewPrometheusHandler(listenAddress, prefix string) (client.MetricsHandler, 
 	scope, _ := tally.NewRootScope(scopeOpts, time.Second)
 	scope = sdktally.NewPrometheusNamingScope(scope)
 
-	log.Info().Str("address", listenAddress).Msg("Starting Prometheus server")
+	log.Info().Str("address", listenAddress).Msg("Starting Prometheus service")
 	return sdktally.NewMetricsHandler(scope), nil
 }
