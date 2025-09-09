@@ -18,23 +18,48 @@ package temporal
 
 import (
 	"crypto/tls"
+	"fmt"
 
 	"github.com/rs/zerolog"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/contrib/envconfig"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/log"
 )
 
 type Options func(*client.Options) error
 
-func NewConnection(options ...Options) (client.Client, error) {
-	opts := &client.Options{}
+// Create a connection to Temporal
+func newConnection(clientOptions *client.Options, options ...Options) (client.Client, error) {
 	for _, o := range options {
-		if err := o(opts); err != nil {
+		if err := o(clientOptions); err != nil {
 			return nil, err
 		}
 	}
-	return client.Dial(*opts)
+	return client.Dial(*clientOptions)
+}
+
+// NewConnectionWithEnvvars
+//
+// Create a Temporal connection, with the Temporal environment config loader as
+// the starting point. This is experimental.
+//
+// @link https://docs.temporal.io/develop/environment-configuration#sdk-usage-example-go
+func NewConnectionWithEnvvars(options ...Options) (client.Client, error) {
+	clientOptions, err := envconfig.LoadDefaultClientOptions()
+	if err != nil {
+		return nil, fmt.Errorf("error loading environment config: %w", err)
+	}
+
+	return newConnection(&clientOptions, options...)
+}
+
+// New Connection
+//
+// Create a Temporal connection and only use options that are supplied
+func NewConnection(options ...Options) (client.Client, error) {
+	clientOptions := &client.Options{}
+	return newConnection(clientOptions, options...)
 }
 
 func WithAPICredentials(apiKey string) Options {

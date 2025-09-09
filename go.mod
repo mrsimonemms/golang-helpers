@@ -10,15 +10,18 @@ require (
 	github.com/samber/slog-zerolog/v2 v2.7.3
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.9.1
+	github.com/stretchr/testify v1.10.0
 	github.com/uber-go/tally/v4 v4.1.17
 	go.temporal.io/api v1.49.1
 	go.temporal.io/sdk v1.35.0
+	go.temporal.io/sdk/contrib/envconfig v0.1.0
 	go.temporal.io/sdk/contrib/tally v0.2.0
 	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.6
 )
 
 require (
+	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -43,7 +46,6 @@ require (
 	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/spf13/pflag v1.0.7 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/twmb/murmur3 v1.1.8 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/net v0.42.0 // indirect
