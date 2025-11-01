@@ -71,6 +71,18 @@ func WithAPICredentials(apiKey string) Options {
 	}
 }
 
+func WithAuthDetection(apiKey, certPath, certKey string) Options {
+	if apiKey != "" {
+		return WithAPICredentials(apiKey)
+	}
+
+	if certKey != "" && certPath != "" {
+		return WithMTLS(certPath, certKey)
+	}
+
+	return WithNoOp()
+}
+
 func WithConnectionOptions(connection *client.ConnectionOptions) Options {
 	return func(o *client.Options) error {
 		o.ConnectionOptions = *connection
@@ -116,12 +128,30 @@ func WithMetrics(metrics client.MetricsHandler) Options {
 	}
 }
 
+func WithMTLS(certPath, certKey string) Options {
+	return func(o *client.Options) error {
+		// Use the crypto/tls package to create a cert object
+		cert, err := tls.LoadX509KeyPair(certPath, certKey)
+		if err != nil {
+			return fmt.Errorf("error loading tls key pair: %w", err)
+		}
+
+		return WithCredentials(client.NewMTLSCredentials(cert))(o)
+	}
+}
+
 func WithNamespace(namespace string) Options {
 	return func(o *client.Options) error {
 		if namespace == "" {
 			namespace = client.DefaultNamespace
 		}
 		o.Namespace = namespace
+		return nil
+	}
+}
+
+func WithNoOp() Options {
+	return func(o *client.Options) error {
 		return nil
 	}
 }
