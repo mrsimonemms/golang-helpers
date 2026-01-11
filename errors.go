@@ -26,6 +26,7 @@ import (
 type FatalError struct {
 	Cause      error
 	Msg        string
+	Logger     func() *zerolog.Event
 	WithParams func(l *zerolog.Event) *zerolog.Event
 }
 
@@ -48,7 +49,12 @@ func HandleFatalError(err error) int {
 			f.Msg = defaultMsg
 		}
 
-		l := log.Error()
+		var l *zerolog.Event
+		if f.Logger != nil {
+			l = f.Logger()
+		} else {
+			l = log.Error()
+		}
 		if f.Cause != nil {
 			l = l.Err(f.Cause)
 		}
