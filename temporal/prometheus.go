@@ -28,7 +28,7 @@ import (
 	sdktally "go.temporal.io/sdk/contrib/tally"
 )
 
-func NewPrometheusHandler(listenAddress, prefix string) (client.MetricsHandler, error) {
+func NewPrometheusHandler(listenAddress, prefix string, registry *prom.Registry) (client.MetricsHandler, error) {
 	c := prometheus.Configuration{
 		ListenAddress: listenAddress,
 		TimerType:     "histogram",
@@ -36,7 +36,7 @@ func NewPrometheusHandler(listenAddress, prefix string) (client.MetricsHandler, 
 
 	reporter, err := c.NewReporter(
 		prometheus.ConfigurationOptions{
-			Registry: prom.NewRegistry(),
+			Registry: registry,
 			OnError: func(err error) {
 				log.Fatal().Err(err).Msg("Error in Prometheus reporter")
 			},

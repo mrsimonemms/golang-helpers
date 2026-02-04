@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"fmt"
 
+	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/contrib/envconfig"
@@ -156,9 +157,9 @@ func WithNoOp() Options {
 	}
 }
 
-func WithPrometheusMetrics(listenAddress, prefix string) Options {
+func WithPrometheusMetrics(listenAddress, prefix string, registry *prom.Registry) Options {
 	return func(o *client.Options) error {
-		metrics, err := NewPrometheusHandler(listenAddress, prefix)
+		metrics, err := NewPrometheusHandler(listenAddress, prefix, registry)
 		if err != nil {
 			return err
 		}
