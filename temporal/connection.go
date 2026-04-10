@@ -30,6 +30,8 @@ import (
 
 type Options func(*client.Options) error
 
+type TLSOptions func(*tls.Config) error
+
 // Create a connection to Temporal
 func newConnection(clientOptions *client.Options, options ...Options) (client.Client, error) {
 	for _, o := range options {
@@ -167,11 +169,19 @@ func WithPrometheusMetrics(listenAddress, prefix string, registry *prom.Registry
 	}
 }
 
-func WithTLS(enabled bool) Options {
+func WithTLS(enabled bool, tlsOpts ...TLSOptions) Options {
 	return func(o *client.Options) error {
 		if enabled {
+			tlsConfig := new(tls.Config)
+
+			for _, opt := range tlsOpts {
+				if err := opt(tlsConfig); err != nil {
+					return fmt.Errorf("error configuring tls options: %w", err)
+				}
+			}
+
 			connectionOpts := &client.ConnectionOptions{
-				TLS: new(tls.Config),
+				TLS: tlsConfig,
 			}
 			return WithConnectionOptions(connectionOpts)(o)
 		}
@@ -181,4 +191,15 @@ func WithTLS(enabled bool) Options {
 
 func WithZerolog(logger *zerolog.Logger) Options {
 	return WithLogger(NewZerologHandler(logger))
+}
+
+// TLS options
+func WithTLSServerName(serverName string) TLSOptions {
+	return func(c *tls.Config) error {
+		if serverName == "" {
+			return nil
+		}
+		c.ServerName = serverName
+		return nil
+	}
 }
