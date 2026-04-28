@@ -107,6 +107,27 @@ func WithDataConverter(cvt converter.DataConverter) Options {
 	}
 }
 
+func WithExternalDrivers(drivers []converter.StorageDriver) Options {
+	return func(o *client.Options) error {
+		o.ExternalStorage.Drivers = drivers
+		return nil
+	}
+}
+
+func WithExternalDriverSelector(selector converter.StorageDriverSelector) Options {
+	return func(o *client.Options) error {
+		o.ExternalStorage.DriverSelector = selector
+		return nil
+	}
+}
+
+func WithExternalPayloadThreshold(limit int) Options {
+	return func(o *client.Options) error {
+		o.ExternalStorage.PayloadSizeThreshold = limit
+		return nil
+	}
+}
+
 func WithHostPort(hostPort string) Options {
 	return func(o *client.Options) error {
 		if hostPort == "" {
