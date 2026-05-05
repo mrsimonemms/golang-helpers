@@ -1,0 +1,34 @@
+{
+  "features": {
+    "ghcr.io/azutake/devcontainer-features/go-packages-install:0": {
+      "version": "0.0.2",
+      "resolved": "ghcr.io/azutake/devcontainer-features/go-packages-install@sha256:2de9228b12e43192618e4b7652dad3922f2de1bc54ab94e4e66b1a8c79e83807",
+      "integrity": "sha256:2de9228b12e43192618e4b7652dad3922f2de1bc54ab94e4e66b1a8c79e83807"
+    },
+    "ghcr.io/devcontainers-extra/features/grpcurl-asdf:2": {
+      "version": "2.0.16",
+      "resolved": "ghcr.io/devcontainers-extra/features/grpcurl-asdf@sha256:9eec57cf4460cf039b8a13793c617a1eb745305925b3d512b9f5d4fb1081a1ed",
+      "integrity": "sha256:9eec57cf4460cf039b8a13793c617a1eb745305925b3d512b9f5d4fb1081a1ed"
+    },
+    "ghcr.io/devcontainers-extra/features/protoc:1": {
+      "version": "1.0.3",
+      "resolved": "ghcr.io/devcontainers-extra/features/protoc@sha256:57ec0b9c074c3c764d5b43386f5fd219586b2548d5a99da8c3307f29fc1deafc",
+      "integrity": "sha256:57ec0b9c074c3c764d5b43386f5fd219586b2548d5a99da8c3307f29fc1deafc"
+    },
+    "ghcr.io/guiyomh/features/goreleaser:0": {
+      "version": "0.1.1",
+      "resolved": "ghcr.io/guiyomh/features/goreleaser@sha256:eba46940bb2064c6595f0d724b6fbf9f880a23306f2be65de6555173d7ff7c92",
+      "integrity": "sha256:eba46940bb2064c6595f0d724b6fbf9f880a23306f2be65de6555173d7ff7c92"
+    },
+    "ghcr.io/mrsimonemms/devcontainers/buf:1": {
+      "version": "1.0.1",
+      "resolved": "ghcr.io/mrsimonemms/devcontainers/buf@sha256:34ac5681af43a19bb9f23b140080147d35ba1b2507e9d21d2dcee06b711bdbd8",
+      "integrity": "sha256:34ac5681af43a19bb9f23b140080147d35ba1b2507e9d21d2dcee06b711bdbd8"
+    },
+    "ghcr.io/mrsimonemms/devcontainers/cobra-cli:1": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/mrsimonemms/devcontainers/cobra-cli@sha256:e5f61d4c00e066815dc98ce8f949aeded739b97f8f69c234ba33d1f07be8c081",
+      "integrity": "sha256:e5f61d4c00e066815dc98ce8f949aeded739b97f8f69c234ba33d1f07be8c081"
+    }
+  }
+}
