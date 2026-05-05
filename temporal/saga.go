@@ -18,7 +18,7 @@ package temporal
 
 import "go.temporal.io/sdk/workflow"
 
-// Compensator is a LIFO stack of compensation functions for the mortgage saga.
+// Compensator is a LIFO stack of compensation functions for the saga pattern.
 //
 // Usage pattern:
 //  1. Declare a Compensator at the top of the workflow function.
