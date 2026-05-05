@@ -26,6 +26,7 @@ import (
 	"go.temporal.io/sdk/contrib/envconfig"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/log"
+	"go.temporal.io/sdk/temporal"
 )
 
 type Options func(*client.Options) error
@@ -103,6 +104,28 @@ func WithCredentials(credential client.Credentials) Options {
 func WithDataConverter(cvt converter.DataConverter) Options {
 	return func(o *client.Options) error {
 		o.DataConverter = cvt
+		return nil
+	}
+}
+
+func WithDataAndFailureConverter(cvt converter.DataConverter) Options {
+	return func(o *client.Options) error {
+		if err := WithDataConverter(cvt)(o); err != nil {
+			return err
+		}
+
+		return WithFailureConverter(cvt)(o)
+	}
+}
+
+func WithFailureConverter(cvt converter.DataConverter) Options {
+	return func(o *client.Options) error {
+		o.FailureConverter = temporal.NewDefaultFailureConverter(
+			temporal.DefaultFailureConverterOptions{
+				DataConverter:          cvt,
+				EncodeCommonAttributes: true,
+			},
+		)
 		return nil
 	}
 }
