@@ -27,6 +27,7 @@ cmd := &cobra.Command{
 		c, err := temporal.NewConnection(append(
 			temporal.ParseCobraOpts(opts.temporal),
 			temporal.WithZerolog(&log.Logger),
+			temporal.WithPrometheusMetrics(opts.temporal.MetricsListenAddress, opts.temporal.MetricsPrefix, nil),
 		)...)
 		if err != nil {
 			return gh.FatalError{
@@ -145,6 +146,5 @@ func ParseCobraOpts(opts *TemporalOpts) []Options {
 			opts.MTLSCertPath,
 			opts.MTLSKeyPath,
 		),
-		WithPrometheusMetrics(opts.MetricsListenAddress, opts.MetricsPrefix, nil),
 	}
 }
