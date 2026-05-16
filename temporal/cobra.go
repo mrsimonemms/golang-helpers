@@ -136,8 +136,8 @@ func NewCobraOpts(cmd *cobra.Command, opts *TemporalOpts) *TemporalOpts {
 	return opts
 }
 
-func ParseCobraOpts(opts *TemporalOpts) []Options {
-	return []Options{
+func ParseCobraOpts(opts *TemporalOpts, overrides ...Options) []Options {
+	return append([]Options{
 		WithHostPort(opts.Address),
 		WithNamespace(opts.Namespace),
 		WithTLS(opts.TLSEnabled, WithTLSServerName(opts.ServerName)),
@@ -146,5 +146,5 @@ func ParseCobraOpts(opts *TemporalOpts) []Options {
 			opts.MTLSCertPath,
 			opts.MTLSKeyPath,
 		),
-	}
+	}, overrides...)
 }
