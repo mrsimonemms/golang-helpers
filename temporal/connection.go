@@ -118,6 +118,13 @@ func WithDataAndFailureConverter(cvt converter.DataConverter) Options {
 	}
 }
 
+func WithExternalStorage(st converter.ExternalStorage) Options {
+	return func(o *client.Options) error {
+		o.ExternalStorage = st
+		return nil
+	}
+}
+
 func WithFailureConverter(cvt converter.DataConverter) Options {
 	return func(o *client.Options) error {
 		o.FailureConverter = temporal.NewDefaultFailureConverter(
