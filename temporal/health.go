@@ -189,6 +189,7 @@ func (h *healthcheck) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func NewHealthCheck(ctx context.Context, taskQueues []string, address string, c client.Client) {
 	h := &healthcheck{
 		client:     c,

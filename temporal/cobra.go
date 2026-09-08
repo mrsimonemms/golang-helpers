@@ -61,6 +61,7 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
+// Deprecated: use github.com/zigflow/helpers instead.
 type TemporalOpts struct {
 	Address              string
 	APIKey               string
@@ -74,6 +75,7 @@ type TemporalOpts struct {
 	TLSEnabled           bool
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func NewCobraOpts(cmd *cobra.Command, opts *TemporalOpts) *TemporalOpts {
 	viper.SetDefault("health_listen_address", "0.0.0.0:3000")
 	cmd.Flags().StringVar(
@@ -136,6 +138,7 @@ func NewCobraOpts(cmd *cobra.Command, opts *TemporalOpts) *TemporalOpts {
 	return opts
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func ParseCobraOpts(opts *TemporalOpts, overrides ...Options) []Options {
 	return append([]Options{
 		WithHostPort(opts.Address),

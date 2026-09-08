@@ -25,6 +25,8 @@ import (
 )
 
 // NewZerologHandler converts an instance of Zerolog into a Temporal log handler
+//
+// Deprecated: use github.com/zigflow/helpers instead.
 func NewZerologHandler(zlog *zerolog.Logger) log.Logger {
 	return log.NewStructuredLogger(slog.New(slogzerolog.Option{
 		Logger: zlog,

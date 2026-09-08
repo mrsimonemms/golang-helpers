@@ -29,8 +29,10 @@ import (
 	"go.temporal.io/sdk/temporal"
 )
 
+// Deprecated: use github.com/zigflow/helpers instead.
 type Options func(*client.Options) error
 
+// Deprecated: use github.com/zigflow/helpers instead.
 type TLSOptions func(*tls.Config) error
 
 // Create a connection to Temporal
@@ -49,6 +51,8 @@ func newConnection(clientOptions *client.Options, options ...Options) (client.Cl
 // the starting point. This is experimental.
 //
 // @link https://docs.temporal.io/develop/environment-configuration#sdk-usage-example-go
+//
+// Deprecated: use github.com/zigflow/helpers instead.
 func NewConnectionWithEnvvars(options ...Options) (client.Client, error) {
 	clientOptions, err := envconfig.LoadDefaultClientOptions()
 	if err != nil {
@@ -60,12 +64,15 @@ func NewConnectionWithEnvvars(options ...Options) (client.Client, error) {
 
 // New Connection
 //
-// Create a Temporal connection and only use options that are supplied
+// Create a Temporal connection and only use options that are supplied.
+//
+// Deprecated: use github.com/zigflow/helpers instead.
 func NewConnection(options ...Options) (client.Client, error) {
 	clientOptions := &client.Options{}
 	return newConnection(clientOptions, options...)
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithAPICredentials(apiKey string) Options {
 	return func(o *client.Options) error {
 		if apiKey != "" {
@@ -75,6 +82,7 @@ func WithAPICredentials(apiKey string) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithAuthDetection(apiKey, certPath, certKey string) Options {
 	if apiKey != "" {
 		return WithAPICredentials(apiKey)
@@ -87,6 +95,7 @@ func WithAuthDetection(apiKey, certPath, certKey string) Options {
 	return WithNoOp()
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithConnectionOptions(connection *client.ConnectionOptions) Options {
 	return func(o *client.Options) error {
 		o.ConnectionOptions = *connection
@@ -94,6 +103,7 @@ func WithConnectionOptions(connection *client.ConnectionOptions) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithCredentials(credential client.Credentials) Options {
 	return func(o *client.Options) error {
 		o.Credentials = credential
@@ -101,6 +111,7 @@ func WithCredentials(credential client.Credentials) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithDataConverter(cvt converter.DataConverter) Options {
 	return func(o *client.Options) error {
 		o.DataConverter = cvt
@@ -108,6 +119,7 @@ func WithDataConverter(cvt converter.DataConverter) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithDataAndFailureConverter(cvt converter.DataConverter) Options {
 	return func(o *client.Options) error {
 		if err := WithDataConverter(cvt)(o); err != nil {
@@ -118,6 +130,7 @@ func WithDataAndFailureConverter(cvt converter.DataConverter) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithExternalStorage(st converter.ExternalStorage) Options {
 	return func(o *client.Options) error {
 		o.ExternalStorage = st
@@ -125,6 +138,7 @@ func WithExternalStorage(st converter.ExternalStorage) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithFailureConverter(cvt converter.DataConverter) Options {
 	return func(o *client.Options) error {
 		o.FailureConverter = temporal.NewDefaultFailureConverter(
@@ -137,6 +151,7 @@ func WithFailureConverter(cvt converter.DataConverter) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithHostPort(hostPort string) Options {
 	return func(o *client.Options) error {
 		if hostPort == "" {
@@ -147,6 +162,7 @@ func WithHostPort(hostPort string) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithLogger(logger log.Logger) Options {
 	return func(o *client.Options) error {
 		o.Logger = logger
@@ -154,6 +170,7 @@ func WithLogger(logger log.Logger) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithMetrics(metrics client.MetricsHandler) Options {
 	return func(o *client.Options) error {
 		o.MetricsHandler = metrics
@@ -161,6 +178,7 @@ func WithMetrics(metrics client.MetricsHandler) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithMTLS(certPath, certKey string) Options {
 	return func(o *client.Options) error {
 		// Use the crypto/tls package to create a cert object
@@ -173,6 +191,7 @@ func WithMTLS(certPath, certKey string) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithNamespace(namespace string) Options {
 	return func(o *client.Options) error {
 		if namespace == "" {
@@ -183,12 +202,14 @@ func WithNamespace(namespace string) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithNoOp() Options {
 	return func(o *client.Options) error {
 		return nil
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithPrometheusMetrics(listenAddress, prefix string, registry *prom.Registry) Options {
 	return func(o *client.Options) error {
 		metrics, err := NewPrometheusHandler(listenAddress, prefix, registry)
@@ -199,6 +220,7 @@ func WithPrometheusMetrics(listenAddress, prefix string, registry *prom.Registry
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithTLS(enabled bool, tlsOpts ...TLSOptions) Options {
 	return func(o *client.Options) error {
 		if enabled {
@@ -219,11 +241,14 @@ func WithTLS(enabled bool, tlsOpts ...TLSOptions) Options {
 	}
 }
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithZerolog(logger *zerolog.Logger) Options {
 	return WithLogger(NewZerologHandler(logger))
 }
 
 // TLS options
+//
+// Deprecated: use github.com/zigflow/helpers instead.
 func WithTLSServerName(serverName string) TLSOptions {
 	return func(c *tls.Config) error {
 		if serverName == "" {

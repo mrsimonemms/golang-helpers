@@ -91,6 +91,11 @@ func init() {
 
 ## Temporal
 
+> [!WARNING]
+> This package is deprecated in favour of
+> [zigflow/helpers](https://github.com/zigflow/helpers) and will receive no
+> further updates. Please migrate.
+
 ### Zerolog
 
 Useful for using an instance of [Zerolog](https://github.com/rs/zerolog) as your
