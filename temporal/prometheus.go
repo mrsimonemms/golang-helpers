@@ -28,6 +28,7 @@ import (
 	sdktally "go.temporal.io/sdk/contrib/tally"
 )
 
+// Deprecated: use github.com/zigflow/helpers instead.
 func NewPrometheusHandler(listenAddress, prefix string, registry *prom.Registry) (client.MetricsHandler, error) {
 	c := prometheus.Configuration{
 		ListenAddress: listenAddress,

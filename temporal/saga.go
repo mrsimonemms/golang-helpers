@@ -27,11 +27,15 @@ import "go.temporal.io/sdk/workflow"
 //  4. If the workflow returns an error, the deferred block calls compensate,
 //     which runs the registered functions in reverse order from a disconnected
 //     context so they are not cancelled along with the failing workflow.
+//
+// Deprecated: use github.com/zigflow/helpers instead.
 type Compensator struct {
 	fns []func(workflow.Context) error
 }
 
 // Add registers a compensation function. Functions are called in LIFO order.
+//
+// Deprecated: use github.com/zigflow/helpers instead.
 func (c *Compensator) Add(fn func(workflow.Context) error) {
 	c.fns = append(c.fns, fn)
 }
@@ -39,6 +43,8 @@ func (c *Compensator) Add(fn func(workflow.Context) error) {
 // Compensate runs all registered compensations in reverse order using ctx.
 // Individual compensation failures are logged and do not mask the original
 // workflow error.
+//
+// Deprecated: use github.com/zigflow/helpers instead.
 func (c *Compensator) Compensate(ctx workflow.Context) {
 	for i := len(c.fns) - 1; i >= 0; i-- {
 		if err := c.fns[i](ctx); err != nil {
