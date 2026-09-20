@@ -17,22 +17,78 @@
 package golanghelpers_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"testing"
 
+	"github.com/go-playground/validator/v10"
 	golanghelpers "github.com/mrsimonemms/golang-helpers"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	validationFailedMsg = "Validation failed"
+	tagRequired         = "required"
+)
+
+// validationTarget is deliberately invalid in more than one way so the
+// array/count handling in logCause is genuinely exercised
+type validationTarget struct {
+	Name  string `validate:"required"`
+	Age   int    `validate:"gte=18"`
+	Email string `validate:"required,email"`
+}
+
+// loggedFieldError is the shape logCause emits for a single validation failure
+type loggedFieldError struct {
+	field     string
+	ns        string
+	tag       string
+	param     string
+	value     any
+	kind      string
+	actualTag string
+}
+
+// asJSON converts the expectations to the decoded form of the logged output
+func asJSON(errs ...loggedFieldError) []any {
+	out := make([]any, 0, len(errs))
+	for i := range errs {
+		e := &errs[i]
+		out = append(out, map[string]any{
+			"field":      e.field,
+			"ns":         e.ns,
+			"tag":        e.tag,
+			"param":      e.param,
+			"value":      e.value,
+			"kind":       e.kind,
+			"actual_tag": e.actualTag,
+		})
+	}
+	return out
+}
+
 func TestHandleFatalError(t *testing.T) {
+	validate := validator.New()
+
+	// Multiple failures - Name is empty, Age is too low and Email is empty
+	validationErrs := validate.Struct(validationTarget{Age: 10})
+	assert.IsType(t, validator.ValidationErrors{}, validationErrs)
+
+	// Validating a non-struct is a misuse of the validator
+	invalidValidationErr := validate.Struct("not a struct")
+	assert.IsType(t, &validator.InvalidValidationError{}, invalidValidationErr)
+
 	tests := []struct {
 		Name     string
 		Error    error
 		ExitCode int
 		Msg      string
 		Level    zerolog.Level
+		Fields   func(t *testing.T, logged map[string]any)
 	}{
 		{
 			Name:     "No error",
@@ -45,6 +101,10 @@ func TestHandleFatalError(t *testing.T) {
 			ExitCode: 1,
 			Msg:      "A fatal error occurred",
 			Level:    zerolog.ErrorLevel,
+			Fields: func(t *testing.T, logged map[string]any) {
+				assert.Equal(t, "some error", logged["error"])
+				assert.NotContains(t, logged, "error_type")
+			},
 		},
 		{
 			Name: "Fatal error - complete",
@@ -58,6 +118,14 @@ func TestHandleFatalError(t *testing.T) {
 			ExitCode: 1,
 			Msg:      "Some message",
 			Level:    zerolog.ErrorLevel,
+			Fields: func(t *testing.T, logged map[string]any) {
+				// An ordinary cause uses the normal zerolog error field
+				assert.Equal(t, "some error", logged["error"])
+				assert.Equal(t, "world", logged["hello"])
+				assert.NotContains(t, logged, "error_type")
+				assert.NotContains(t, logged, "validation_errors")
+				assert.NotContains(t, logged, "error_count")
+			},
 		},
 		{
 			Name:     "Fatal error - empty",
@@ -65,15 +133,86 @@ func TestHandleFatalError(t *testing.T) {
 			ExitCode: 1,
 			Msg:      "A fatal error occurred",
 			Level:    zerolog.ErrorLevel,
+			Fields: func(t *testing.T, logged map[string]any) {
+				assert.NotContains(t, logged, "error")
+				assert.NotContains(t, logged, "error_type")
+			},
+		},
+		{
+			Name: "Fatal error - invalid validation",
+			Error: golanghelpers.FatalError{
+				Cause: invalidValidationErr,
+				Msg:   "Invalid validation",
+			},
+			ExitCode: 1,
+			Msg:      "Invalid validation",
+			Level:    zerolog.ErrorLevel,
+			Fields: func(t *testing.T, logged map[string]any) {
+				assert.Equal(t, "invalid validation", logged["error_type"])
+				// The underlying error is still logged
+				assert.Equal(t, "validator: (nil string)", logged["error"])
+				assert.NotContains(t, logged, "validation_errors")
+				assert.NotContains(t, logged, "error_count")
+			},
+		},
+		{
+			Name: "Fatal error - validation errors",
+			Error: golanghelpers.FatalError{
+				Cause: validationErrs,
+				Msg:   validationFailedMsg,
+				WithParams: func(l *zerolog.Event) *zerolog.Event {
+					return l.Str("hello", "world")
+				},
+			},
+			ExitCode: 1,
+			Msg:      validationFailedMsg,
+			Level:    zerolog.ErrorLevel,
+			Fields: func(t *testing.T, logged map[string]any) {
+				assert.Equal(t, "validation error", logged["error_type"])
+				assert.Equal(t, float64(3), logged["error_count"])
+				assert.Equal(t, "world", logged["hello"])
+
+				// Every failure is logged, with the fields emitted by logCause
+				assert.Equal(t, asJSON(
+					loggedFieldError{
+						field:     "Name",
+						ns:        "validationTarget.Name",
+						tag:       tagRequired,
+						param:     "",
+						value:     "",
+						kind:      "string",
+						actualTag: tagRequired,
+					},
+					loggedFieldError{
+						field:     "Age",
+						ns:        "validationTarget.Age",
+						tag:       "gte",
+						param:     "18",
+						value:     float64(10),
+						kind:      "int",
+						actualTag: "gte",
+					},
+					loggedFieldError{
+						field:     "Email",
+						ns:        "validationTarget.Email",
+						tag:       tagRequired,
+						param:     "",
+						value:     "",
+						kind:      "string",
+						actualTag: tagRequired,
+					},
+				), logged["validation_errors"])
+			},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			h := &msgHook{}
+			out := new(bytes.Buffer)
 			prev := log.Logger
 			t.Cleanup(func() { log.Logger = prev })
-			log.Logger = log.Logger.Hook(h)
+			log.Logger = zerolog.New(out).Hook(h)
 
 			code := golanghelpers.HandleFatalError(test.Error)
 
@@ -83,9 +222,46 @@ func TestHandleFatalError(t *testing.T) {
 				// Check the error that's logged
 				assert.Equal(t, test.Msg, h.msg)
 				assert.Equal(t, test.Level, h.level)
+
+				// Field ordering isn't part of the contract, so decode the
+				// structured output rather than compare the raw JSON
+				logged := map[string]any{}
+				assert.NoError(t, json.Unmarshal(out.Bytes(), &logged))
+				assert.Equal(t, test.Msg, logged["message"])
+
+				if test.Fields != nil {
+					test.Fields(t, logged)
+				}
+			} else {
+				assert.Empty(t, out.String())
 			}
 		})
 	}
+}
+
+func TestHandleFatalErrorCustomLogger(t *testing.T) {
+	out := new(bytes.Buffer)
+	prev := log.Logger
+	t.Cleanup(func() { log.Logger = prev })
+	log.Logger = zerolog.New(out)
+
+	validationErrs := validator.New().Struct(validationTarget{Age: 10})
+
+	code := golanghelpers.HandleFatalError(golanghelpers.FatalError{
+		Cause:  validationErrs,
+		Msg:    validationFailedMsg,
+		Logger: log.Warn,
+	})
+
+	assert.Equal(t, 1, code)
+
+	logged := map[string]any{}
+	assert.NoError(t, json.Unmarshal(out.Bytes(), &logged))
+	assert.Equal(t, "warn", logged["level"])
+	assert.Equal(t, validationFailedMsg, logged["message"])
+	assert.Equal(t, "validation error", logged["error_type"])
+	assert.Equal(t, float64(3), logged["error_count"])
+	assert.Len(t, logged["validation_errors"], 3)
 }
 
 type msgHook struct {
