@@ -19,6 +19,7 @@ package golanghelpers
 import (
 	"errors"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -56,7 +57,7 @@ func HandleFatalError(err error) int {
 			l = log.Error()
 		}
 		if f.Cause != nil {
-			l = l.Err(f.Cause)
+			l = logCause(l, f.Cause)
 		}
 		if f.WithParams != nil {
 			l = f.WithParams(l)
@@ -67,4 +68,37 @@ func HandleFatalError(err error) int {
 		log.Error().Err(err).Msg(defaultMsg)
 	}
 	return 1
+}
+
+func logCause(l *zerolog.Event, err error) *zerolog.Event {
+	// Invalid validation configuration
+	var invalidErr *validator.InvalidValidationError
+	if errors.As(err, &invalidErr) {
+		return l.Err(err).
+			Str("error_type", "invalid validation")
+	}
+
+	// Validation failed
+	var validationErrs validator.ValidationErrors
+	if errors.As(err, &validationErrs) {
+		fields := l.CreateArray()
+		for _, fe := range validationErrs {
+			fields = fields.Interface(map[string]any{
+				"field":      fe.Field(),
+				"ns":         fe.Namespace(),
+				"tag":        fe.Tag(),
+				"param":      fe.Param(),
+				"value":      fe.Value(),
+				"kind":       fe.Kind().String(),
+				"actual_tag": fe.ActualTag(),
+			})
+		}
+
+		return l.Array("validation_errors", fields).
+			Int("error_count", len(validationErrs)).
+			Str("error_type", "validation error")
+	}
+
+	// Normal error
+	return l.Err(err)
 }
