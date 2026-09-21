@@ -69,6 +69,10 @@ it to the terminal.
 
 ## Logger
 
+> [!WARNING]
+> This package is retained for backwards compatibility and should not be used
+> in new code.
+
 This is useful for getting a custom log level in a Cobra program.
 
 ```go
