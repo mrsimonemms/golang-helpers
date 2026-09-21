@@ -19,6 +19,7 @@ package golanghelpers_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -327,29 +328,85 @@ func TestFatalErrorError(t *testing.T) {
 	}
 }
 
-func TestFatalErrorUnwrapping(t *testing.T) {
-	cause := fmt.Errorf("the cause")
-	fatal := golanghelpers.FatalError{Cause: cause, Msg: theMessage}
+func TestFatalErrorUnwrap(t *testing.T) {
+	cause := errors.New("the cause")
 
-	t.Run("errors.As finds it through a wrapper", func(t *testing.T) {
+	tests := []struct {
+		Name     string
+		Error    golanghelpers.FatalError
+		Expected error
+	}{
+		{
+			Name:     "The cause is returned",
+			Error:    golanghelpers.FatalError{Cause: cause, Msg: theMessage},
+			Expected: cause,
+		},
+		{
+			Name:     "A missing cause unwraps to nil",
+			Error:    golanghelpers.FatalError{Msg: theMessage},
+			Expected: nil,
+		},
+		{
+			Name:     "An empty error unwraps to nil",
+			Error:    golanghelpers.FatalError{},
+			Expected: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			assert.Equal(t, test.Expected, test.Error.Unwrap())
+			assert.Equal(t, test.Expected, errors.Unwrap(test.Error))
+		})
+	}
+}
+
+func TestFatalErrorChain(t *testing.T) {
+	sentinel := errors.New("sentinel")
+	fatal := golanghelpers.FatalError{Cause: sentinel, Msg: theMessage}
+
+	t.Run("errors.Is reaches the cause", func(t *testing.T) {
+		assert.ErrorIs(t, fatal, sentinel)
+	})
+
+	t.Run("errors.Is reaches the cause through a wrapper", func(t *testing.T) {
+		assert.ErrorIs(t, fmt.Errorf("outer: %w", fatal), sentinel)
+	})
+
+	t.Run("errors.Is reaches a cause that is itself wrapped", func(t *testing.T) {
+		nested := golanghelpers.FatalError{
+			Cause: fmt.Errorf("inner: %w", sentinel),
+			Msg:   theMessage,
+		}
+
+		assert.ErrorIs(t, nested, sentinel)
+		assert.ErrorIs(t, fmt.Errorf("outer: %w", nested), sentinel)
+	})
+
+	t.Run("errors.Is does not match an unrelated error", func(t *testing.T) {
+		assert.NotErrorIs(t, fatal, errors.New("sentinel"))
+	})
+
+	t.Run("A nil cause terminates the chain", func(t *testing.T) {
+		assert.NotErrorIs(t, golanghelpers.FatalError{Msg: theMessage}, sentinel)
+	})
+
+	t.Run("errors.As still finds the FatalError", func(t *testing.T) {
 		var found golanghelpers.FatalError
 		assert.ErrorAs(t, fmt.Errorf("outer: %w", fatal), &found)
 		assert.Equal(t, theMessage, found.Msg)
-		assert.Equal(t, cause, found.Cause)
+		assert.Equal(t, sentinel, found.Cause)
 	})
 
-	t.Run("The cause is not reachable via errors.Is", func(t *testing.T) {
-		// FatalError has no Unwrap method, so the cause is only available
-		// through the exported field
-		assert.NotErrorIs(t, fatal, cause)
-	})
+	t.Run("errors.As finds a typed cause through the FatalError", func(t *testing.T) {
+		var validationErrs validator.ValidationErrors
+		wrapped := golanghelpers.FatalError{
+			Cause: validator.New().Struct(validationTarget{Age: 10}),
+			Msg:   validationFailedMsg,
+		}
 
-	t.Run("errors.Is never matches a FatalError", func(t *testing.T) {
-		// The Logger and WithParams func fields make FatalError
-		// non-comparable, so errors.Is can't match it even against itself.
-		// errors.As is the only way to recover one. Reported separately
-		assert.NotErrorIs(t, fmt.Errorf("outer: %w", fatal), fatal)
-		assert.NotErrorIs(t, fatal, fatal)
+		assert.ErrorAs(t, fmt.Errorf("outer: %w", wrapped), &validationErrs)
+		assert.Len(t, validationErrs, 3)
 	})
 }
 

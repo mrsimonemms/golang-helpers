@@ -38,6 +38,11 @@ func (e FatalError) Error() string {
 	return e.Msg
 }
 
+// Unwrap exposes the cause to errors.Is and errors.As
+func (e FatalError) Unwrap() error {
+	return e.Cause
+}
+
 func HandleFatalError(err error) int {
 	if err == nil {
 		return 0
