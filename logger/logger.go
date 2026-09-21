@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+// Package logger contains helpers around Logrus, originally intended to make
+// it behave more like Zerolog.
+//
+// Deprecated: this package is retained for backwards compatibility and
+// should not be used in new code.
 package logger
 
 import (
@@ -24,12 +29,17 @@ import (
 
 // Logger is default instance of logger used in all other packages
 // instead of global scope logrus.Logger.
+//
+// Deprecated: this package is retained for backwards compatibility and
+// should not be used in new code.
 var Logger *logrus.Logger
 
 func init() {
 	Logger = logrus.New()
 }
 
+// Deprecated: this package is retained for backwards compatibility and
+// should not be used in new code.
 func GetAllLevels() string {
 	l := []string{}
 	for _, s := range logrus.AllLevels {
@@ -43,6 +53,8 @@ func GetAllLevels() string {
 	return strings.Join(l, ", ")
 }
 
+// Deprecated: this package is retained for backwards compatibility and
+// should not be used in new code.
 func SetLevel(logLevel string) error {
 	level, err := logrus.ParseLevel(logLevel)
 	if err != nil {
@@ -54,6 +66,9 @@ func SetLevel(logLevel string) error {
 }
 
 // Log is used to return the default Logger.
+//
+// Deprecated: this package is retained for backwards compatibility and
+// should not be used in new code.
 func Log() *logrus.Logger {
 	return Logger
 }
