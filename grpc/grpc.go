@@ -23,9 +23,10 @@ import (
 	"time"
 
 	golanghelpers "github.com/mrsimonemms/golang-helpers"
-	"github.com/mrsimonemms/golang-helpers/logger"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -63,7 +64,7 @@ type StreamResponse[T any] struct {
 
 // Send is the only method on the StreamResponse. Any data received is sent directly to the terminal logger.
 func (f *StreamResponse[T]) Send(data *T) error {
-	logger.Log().WithField("data", data).Info("New stream data received")
+	log.Info().Any("data", data).Msg("New stream data received")
 	return nil
 }
 
@@ -77,7 +78,7 @@ func NewGRPCCommand[T any](s *Server, command string, f Listener[T]) *Server {
 				return err
 			}
 
-			logger.Log().WithField("response", res).Info("Command resolved successfully")
+			log.Info().Any("response", res).Msg("Command resolved successfully")
 			return nil
 		},
 	}
@@ -95,7 +96,7 @@ func (s *Server) Execute() {
 
 	err := s.RootCmd.Execute()
 	if err != nil {
-		os.Exit(1)
+		os.Exit(golanghelpers.HandleFatalError(err))
 	}
 }
 
@@ -115,14 +116,27 @@ Any response from the command will be sent to the console. In production, this w
 }
 
 func newRootCmd(name, description string, serverFactory []ServerFactory, opts ...Options) *cobra.Command {
+	viper.AutomaticEnv()
+
 	var logLevel string
 	var port int
 
 	rootCmd := &cobra.Command{
-		Use:   name,
-		Short: description,
+		Use:           name,
+		Short:         description,
+		SilenceUsage:  true,
+		SilenceErrors: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return logger.SetLevel(logLevel)
+			level, err := zerolog.ParseLevel(logLevel)
+			if err != nil {
+				return golanghelpers.FatalError{
+					Cause: err,
+					Msg:   "Error setting the log level",
+				}
+			}
+			zerolog.SetGlobalLevel(level)
+
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			//nolint:noctx
@@ -160,15 +174,16 @@ func newRootCmd(name, description string, serverFactory []ServerFactory, opts ..
 						// Run health check
 						status := check.Check(healthcheck)
 
-						l := logger.Log().
-							WithField("status", status).
-							WithField("service", service).
-							WithField("timeoout", check.Timeout)
+						l := log.With().
+							Str("status", status.String()).
+							Str("service", service).
+							Dur("timeout", *check.Timeout).
+							Logger()
 
 						if status == grpc_health_v1.HealthCheckResponse_SERVING {
-							l.Debug("Running health check")
+							l.Debug().Msg("Running health check")
 						} else {
-							l.Error("Health check failed")
+							l.Error().Msg("Health check failed")
 						}
 
 						healthcheck.SetServingStatus(service, status)
@@ -182,20 +197,22 @@ func newRootCmd(name, description string, serverFactory []ServerFactory, opts ..
 				factory(server)
 			}
 
-			logger.Log().WithField("address", lis.Addr()).Info("Server listening")
+			log.Info().Str("address", lis.Addr().String()).Msg("Server listening")
 			return server.Serve(lis)
 		},
 	}
 
+	viper.SetDefault("log_level", zerolog.InfoLevel.String())
 	rootCmd.PersistentFlags().StringVarP(
 		&logLevel,
 		"log-level",
 		"l",
-		logrus.InfoLevel.String(),
-		fmt.Sprintf("log level: %s", logger.GetAllLevels()),
+		viper.GetString("log_level"),
+		"Set log level",
 	)
 
-	rootCmd.Flags().IntVarP(&port, "port", "p", 3000, "The server port")
+	viper.SetDefault("port", 3000)
+	rootCmd.Flags().IntVarP(&port, "port", "p", viper.GetInt("port"), "The server port")
 
 	return rootCmd
 }
