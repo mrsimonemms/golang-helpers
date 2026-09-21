@@ -16,11 +16,18 @@
 
 package golanghelpers
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
 
 // Hide the default value to avoid spaffing the API to command line
 func HideCommandOutput(cmd *cobra.Command, key string) {
 	v := cmd.Flags().Lookup(key)
+	if v == nil {
+		panic(fmt.Sprintf("golanghelpers: cannot hide unknown flag %q", key))
+	}
 	if s := v.Value; s.String() != "" {
 		v.DefValue = "***"
 	}

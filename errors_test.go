@@ -31,6 +31,8 @@ import (
 
 const (
 	validationFailedMsg = "Validation failed"
+	someMessage         = "Some message"
+	theMessage          = "the message"
 	tagRequired         = "required"
 )
 
@@ -110,13 +112,13 @@ func TestHandleFatalError(t *testing.T) {
 			Name: "Fatal error - complete",
 			Error: golanghelpers.FatalError{
 				Cause: fmt.Errorf("some error"),
-				Msg:   "Some message",
+				Msg:   someMessage,
 				WithParams: func(l *zerolog.Event) *zerolog.Event {
 					return l.Str("hello", "world")
 				},
 			},
 			ExitCode: 1,
-			Msg:      "Some message",
+			Msg:      someMessage,
 			Level:    zerolog.ErrorLevel,
 			Fields: func(t *testing.T, logged map[string]any) {
 				// An ordinary cause uses the normal zerolog error field
@@ -125,6 +127,22 @@ func TestHandleFatalError(t *testing.T) {
 				assert.NotContains(t, logged, "error_type")
 				assert.NotContains(t, logged, "validation_errors")
 				assert.NotContains(t, logged, "error_count")
+			},
+		},
+		{
+			Name: "Fatal error - wrapped",
+			Error: fmt.Errorf("outer: %w", golanghelpers.FatalError{
+				Cause: fmt.Errorf("some error"),
+				Msg:   someMessage,
+			}),
+			ExitCode: 1,
+			Msg:      someMessage,
+			Level:    zerolog.ErrorLevel,
+			Fields: func(t *testing.T, logged map[string]any) {
+				// HandleFatalError uses errors.As, so the wrapper is unwrapped
+				// and the FatalError still drives the output
+				assert.Equal(t, "some error", logged["error"])
+				assert.NotContains(t, logged, "error_type")
 			},
 		},
 		{
@@ -262,6 +280,77 @@ func TestHandleFatalErrorCustomLogger(t *testing.T) {
 	assert.Equal(t, "validation error", logged["error_type"])
 	assert.Equal(t, float64(3), logged["error_count"])
 	assert.Len(t, logged["validation_errors"], 3)
+}
+
+func TestFatalErrorError(t *testing.T) {
+	tests := []struct {
+		Name     string
+		Error    golanghelpers.FatalError
+		Expected string
+	}{
+		{
+			Name: "The cause is preferred over the message",
+			Error: golanghelpers.FatalError{
+				Cause: fmt.Errorf("the cause"),
+				Msg:   theMessage,
+			},
+			Expected: "the cause",
+		},
+		{
+			Name:     "The message is used when there is no cause",
+			Error:    golanghelpers.FatalError{Msg: theMessage},
+			Expected: theMessage,
+		},
+		{
+			Name:     "An empty error renders as empty",
+			Error:    golanghelpers.FatalError{},
+			Expected: "",
+		},
+		{
+			Name: "A validation cause renders the validator message",
+			Error: golanghelpers.FatalError{
+				Cause: validator.New().Struct(validationTarget{Age: 10}),
+				Msg:   validationFailedMsg,
+			},
+			Expected: validator.New().Struct(validationTarget{Age: 10}).Error(),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			assert.Equal(t, test.Expected, test.Error.Error())
+
+			// The same string is what fmt and wrapping see
+			assert.Equal(t, test.Expected, fmt.Sprintf("%v", test.Error))
+			assert.Equal(t, "outer: "+test.Expected, fmt.Errorf("outer: %w", test.Error).Error())
+		})
+	}
+}
+
+func TestFatalErrorUnwrapping(t *testing.T) {
+	cause := fmt.Errorf("the cause")
+	fatal := golanghelpers.FatalError{Cause: cause, Msg: theMessage}
+
+	t.Run("errors.As finds it through a wrapper", func(t *testing.T) {
+		var found golanghelpers.FatalError
+		assert.ErrorAs(t, fmt.Errorf("outer: %w", fatal), &found)
+		assert.Equal(t, theMessage, found.Msg)
+		assert.Equal(t, cause, found.Cause)
+	})
+
+	t.Run("The cause is not reachable via errors.Is", func(t *testing.T) {
+		// FatalError has no Unwrap method, so the cause is only available
+		// through the exported field
+		assert.NotErrorIs(t, fatal, cause)
+	})
+
+	t.Run("errors.Is never matches a FatalError", func(t *testing.T) {
+		// The Logger and WithParams func fields make FatalError
+		// non-comparable, so errors.Is can't match it even against itself.
+		// errors.As is the only way to recover one. Reported separately
+		assert.NotErrorIs(t, fmt.Errorf("outer: %w", fatal), fatal)
+		assert.NotErrorIs(t, fatal, fatal)
+	})
 }
 
 type msgHook struct {
