@@ -166,11 +166,13 @@ func TestIsTerminal(t *testing.T) {
 	}{
 		{
 			Name: "CI short-circuits before the file is inspected",
+			//nolint:modernize // Testing the command
 			CI:   golanghelpers.Ptr(ciTrue),
 			File: func(t *testing.T) []*os.File { return []*os.File{tempFile(t)} },
 		},
 		{
 			Name: "An empty CI value still counts as being set",
+			//nolint:modernize // Testing the command
 			CI:   golanghelpers.Ptr(""),
 			File: func(t *testing.T) []*os.File { return []*os.File{tempFile(t)} },
 		},
