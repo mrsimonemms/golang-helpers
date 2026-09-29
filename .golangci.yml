@@ -53,6 +53,8 @@ linters:
       line-length: 140
     misspell:
       locale: UK
+      ignore-rules:
+        - fiber
   exclusions:
     generated: lax
     presets:
