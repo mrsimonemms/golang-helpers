@@ -19,7 +19,7 @@ jobs:
     env:
       GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # fetch-depth is required
 
@@ -28,16 +28,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Required for pre-commit to be able scan history
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.x
 
@@ -51,6 +51,6 @@ jobs:
         run: go test -v ./...
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
 
       - uses: pre-commit/action@v3.0.1
