@@ -16,6 +16,7 @@
 
 package golanghelpers
 
+//nolint:modernize // Kept for legacy reasons
 func Ptr[T any](p T) *T {
 	return &p
 }

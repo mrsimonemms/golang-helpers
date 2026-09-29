@@ -190,22 +190,26 @@ func TestLoadUpdateCache(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "A valid cache is decoded",
+			Name: "A valid cache is decoded",
+			//nolint:modernize // Testing the command
 			Contents: Ptr(`{"last_checked":"2026-09-21T10:30:00Z","latest_version":"1.2.3"}`),
 			Expected: &updateCache{LastChecked: lastChecked, LatestVersion: testVersion},
 		},
 		{
-			Name:     "A corrupt cache is treated as missing",
+			Name: "A corrupt cache is treated as missing",
+			//nolint:modernize // Testing the command
 			Contents: Ptr("this is not json"),
 			Expected: nil,
 		},
 		{
-			Name:     "An empty cache file is treated as missing",
+			Name: "An empty cache file is treated as missing",
+			//nolint:modernize // Testing the command
 			Contents: Ptr(""),
 			Expected: nil,
 		},
 		{
-			Name:     "A cache with unknown fields still decodes",
+			Name: "A cache with unknown fields still decodes",
+			//nolint:modernize // Testing the command
 			Contents: Ptr(`{"latest_version":"2.0.0","something_else":true}`),
 			Expected: &updateCache{LatestVersion: "2.0.0"},
 		},

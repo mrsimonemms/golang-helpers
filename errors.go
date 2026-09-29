@@ -48,9 +48,8 @@ func HandleFatalError(err error) int {
 		return 0
 	}
 
-	var f FatalError
 	const defaultMsg = "A fatal error occurred"
-	if errors.As(err, &f) {
+	if f, ok := errors.AsType[FatalError](err); ok {
 		if f.Msg == "" {
 			f.Msg = defaultMsg
 		}
@@ -77,15 +76,13 @@ func HandleFatalError(err error) int {
 
 func logCause(l *zerolog.Event, err error) *zerolog.Event {
 	// Invalid validation configuration
-	var invalidErr *validator.InvalidValidationError
-	if errors.As(err, &invalidErr) {
+	if _, ok := errors.AsType[*validator.InvalidValidationError](err); ok {
 		return l.Err(err).
 			Str("error_type", "invalid validation")
 	}
 
 	// Validation failed
-	var validationErrs validator.ValidationErrors
-	if errors.As(err, &validationErrs) {
+	if validationErrs, ok := errors.AsType[validator.ValidationErrors](err); ok {
 		fields := l.CreateArray()
 		for _, fe := range validationErrs {
 			fields = fields.Interface(map[string]any{

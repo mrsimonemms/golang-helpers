@@ -25,6 +25,8 @@ import (
 )
 
 // Ptr is generic, so each case needs its own type rather than a table row
+//
+//nolint:modernize // Testing the command
 func TestPtr(t *testing.T) {
 	t.Run("Dereferences back to the original value", func(t *testing.T) {
 		assert.Equal(t, "hello", *golanghelpers.Ptr("hello"))
