@@ -117,7 +117,7 @@ func decodeLogLines(t *testing.T, out *logBuffer) []map[string]any {
 	t.Helper()
 
 	lines := make([]map[string]any, 0)
-	for _, line := range bytes.Split(bytes.TrimSpace(out.Bytes()), []byte("\n")) {
+	for line := range bytes.SplitSeq(bytes.TrimSpace(out.Bytes()), []byte("\n")) {
 		if len(line) == 0 {
 			continue
 		}
@@ -134,7 +134,7 @@ func decodeLogLines(t *testing.T, out *logBuffer) []map[string]any {
 // carry unstructured output, such as a subprocess's stderr
 func parseLogLines(b []byte) []map[string]any {
 	lines := make([]map[string]any, 0)
-	for _, line := range bytes.Split(b, []byte("\n")) {
+	for line := range bytes.SplitSeq(b, []byte("\n")) {
 		logged := map[string]any{}
 		if err := json.Unmarshal(line, &logged); err != nil {
 			continue

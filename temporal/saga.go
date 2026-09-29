@@ -16,7 +16,11 @@
 
 package temporal
 
-import "go.temporal.io/sdk/workflow"
+import (
+	"slices"
+
+	"go.temporal.io/sdk/workflow"
+)
 
 // Compensator is a LIFO stack of compensation functions for the saga pattern.
 //
@@ -46,8 +50,8 @@ func (c *Compensator) Add(fn func(workflow.Context) error) {
 //
 // Deprecated: use github.com/zigflow/helpers instead.
 func (c *Compensator) Compensate(ctx workflow.Context) {
-	for i := len(c.fns) - 1; i >= 0; i-- {
-		if err := c.fns[i](ctx); err != nil {
+	for _, v := range slices.Backward(c.fns) {
+		if err := v(ctx); err != nil {
 			workflow.GetLogger(ctx).Error("compensation step failed", "error", err)
 		}
 	}
