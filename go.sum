@@ -296,8 +296,8 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 go.opentelemetry.io/proto/otlp v0.7.0/go.mod h1:PqfVotwruBrMGOCsRd/89rSnXhoiJIqeYNgFYFoEGnI=
 go.temporal.io/api v1.5.0/go.mod h1:BqKxEJJYdxb5dqf0ODfzfMxh8UEQ5L3zKS51FiIYYkA=
-go.temporal.io/api v1.63.7 h1:d5U0NlJ1kAvM+0GDrnjJ3ohVO9FGxjHKlfg7u6H68Vg=
-go.temporal.io/api v1.63.7/go.mod h1:acM0I9WPuYg8W3Pd9jOZvEgi7mRUttUQ4+e7fowKVnM=
+go.temporal.io/api v1.64.0 h1:Wu7TMdVN/4KdU+v0As6SMm86uapnM1yI7PhC5Hvhqso=
+go.temporal.io/api v1.64.0/go.mod h1:acM0I9WPuYg8W3Pd9jOZvEgi7mRUttUQ4+e7fowKVnM=
 go.temporal.io/sdk v1.12.0/go.mod h1:lSp3lH1lI0TyOsus0arnO3FYvjVXBZGi/G7DjnAnm6o=
 go.temporal.io/sdk v1.50.0 h1:voD61vs0hfxXOI+evJ/rMdExDYf+I+YLhoawhwf1LVU=
 go.temporal.io/sdk v1.50.0/go.mod h1:xP0FulN5JJSfisESUP60LlWsrKz2tLSStGjVdk8r5cc=
