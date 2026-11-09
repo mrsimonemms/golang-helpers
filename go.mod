@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/go-playground/validator/v10 v10.30.5
+	github.com/go-playground/validator/v10 v10.30.6
 	github.com/gofiber/fiber/v3 v3.6.1
 	github.com/prometheus/client_golang v1.25.0
 	github.com/rs/zerolog v1.35.1
@@ -15,7 +15,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
 	github.com/uber-go/tally/v4 v4.1.17
-	go.temporal.io/api v1.64.0
+	go.temporal.io/api v1.64.1
 	go.temporal.io/sdk v1.50.0
 	go.temporal.io/sdk/contrib/envconfig v1.0.2
 	go.temporal.io/sdk/contrib/tally v0.2.0
@@ -37,7 +37,7 @@ require (
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
 	github.com/go-playground/locales v0.14.2 // indirect
 	github.com/go-playground/universal-translator v0.18.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
