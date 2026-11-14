@@ -24,11 +24,18 @@ import (
 
 // Hide the default value to avoid spaffing the API to command line
 func HideCommandOutput(cmd *cobra.Command, key string) {
-	v := cmd.Flags().Lookup(key)
-	if v == nil {
+	flag := cmd.Flags().Lookup(key)
+	if flag == nil {
+		flag = cmd.PersistentFlags().Lookup(key)
+	}
+	if flag == nil {
+		flag = cmd.InheritedFlags().Lookup(key)
+	}
+	if flag == nil {
 		panic(fmt.Sprintf("golanghelpers: cannot hide unknown flag %q", key))
 	}
-	if s := v.Value; s.String() != "" {
-		v.DefValue = "***"
+
+	if flag.Value.String() != "" {
+		flag.DefValue = "***"
 	}
 }
